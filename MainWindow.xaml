@@ -11,8 +11,19 @@
 			<ColumnDefinition/>
 			<ColumnDefinition Width="0.2*"/>
 		</Grid.ColumnDefinitions>
-		<Border BorderBrush="Black" Margin="5px 5px 5px 5px" BorderThickness="1,1,1,1">
-			<InkCanvas Grid.Column="0"/>
+		<Border Grid.Column="0" BorderBrush="Black" Margin="5px 5px 5px 5px" BorderThickness="1,1,1,1">
+			<InkCanvas x:Name="Canvas" Grid.Column="0"/>
 		</Border>
+		<Grid Grid.Column="1" ShowGridLines="True">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<Button x:Name="GetStrokesBtn" Content="Штрихи" Width="100px" Height="50px" Grid.Row="0" Click="GetStrokesBtn_Click" />
+			<Button x:Name="ClearBtn" Content="Очистить" Width="100px" Height="50px" Grid.Row="1" Click="ClearBtn_Click"/>
+			<Button x:Name="MoveBtn" Content="Переместить" Width="100px" Height="50px" Grid.Row="2" Click="MoveBtn_Click"/>
+		</Grid>
 	</Grid>
 </Window>
