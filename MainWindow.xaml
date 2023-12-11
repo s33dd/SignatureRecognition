@@ -24,6 +24,7 @@
 			<Button x:Name="GetStrokesBtn" Content="Штрихи" Width="100px" Height="50px" Grid.Row="0" Click="GetStrokesBtn_Click" />
 			<Button x:Name="ClearBtn" Content="Очистить" Width="100px" Height="50px" Grid.Row="1" Click="ClearBtn_Click"/>
 			<Button x:Name="MoveBtn" Content="Переместить" Width="100px" Height="50px" Grid.Row="2" Click="MoveBtn_Click"/>
+			<TextBox Name="StrokesCount" Text="" IsReadOnly="True" Grid.Row="3" Height="30px"/>
 		</Grid>
 	</Grid>
 </Window>

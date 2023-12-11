@@ -19,10 +19,7 @@ namespace SignatureRecognition {
 		}
 
 		private void GetStrokesBtn_Click(object sender, RoutedEventArgs e) {
-			var strokes = Canvas.Strokes;
-			foreach (var item in strokes) {
-				var points = item.StylusPoints;
-			}
+
 		}
 
 		private void ClearBtn_Click(object sender, RoutedEventArgs e) {
