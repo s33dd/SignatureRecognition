@@ -140,5 +140,50 @@ namespace SignatureRecognition {
 			}
 			return strokes;
 		}
+
+		public static StrokeCollection Rotate(StrokeCollection strokes) {
+			StylusPointCollection sp = new StylusPointCollection();
+			List<int> endIndices = new List<int>();
+			List<int> startIndices = new List<int>(); //Arrays for saving indices for each stroke for separation
+			endIndices.Clear();
+			startIndices.Clear();
+			for (int i = 0; i < strokes.Count; i++) {
+				if (i == 0) {
+					startIndices.Add(i);
+					endIndices.Add(strokes[i].StylusPoints.Count - 1);
+				} else {
+					startIndices.Add(endIndices[i - 1] + 1);
+					endIndices.Add(endIndices[i - 1] + strokes[i].StylusPoints.Count);
+				}
+				var stylusPoints = strokes[i].StylusPoints.Clone();
+				sp.Add(stylusPoints);
+			}
+
+			strokes.Clear();
+			strokes.Add(new Stroke(sp));
+
+			Matrix matrix = Matrix.Identity;
+			foreach (var stroke in strokes) {
+				var bounds = stroke.GetBounds();
+				double xCenter = bounds.Left + bounds.Width / 2;
+				double yCenter = bounds.Top + bounds.Height / 2;
+				matrix.RotateAt(15, xCenter, yCenter);
+				stroke.Transform(matrix, false);
+			}
+
+			StrokeCollection newStrokes = new StrokeCollection();
+			var points = strokes[0].StylusPoints.Clone();
+			for (int i = 0; i < startIndices.Count; i++) {
+				StylusPointCollection newPoints = new StylusPointCollection();
+				for (int j = startIndices[i]; j <= endIndices[i]; j++) {
+					newPoints.Add(points[j]);
+				}
+				Stroke str = new Stroke(newPoints);
+				newStrokes.Add(str);
+			}
+
+			strokes = newStrokes;
+			return strokes;
+		}
 	}
 }

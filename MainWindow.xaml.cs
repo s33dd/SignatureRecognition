@@ -19,7 +19,7 @@ namespace SignatureRecognition {
 		}
 
 		private void GetStrokesBtn_Click(object sender, RoutedEventArgs e) {
-
+			Canvas.Strokes = Recognizer.Rotate(Canvas.Strokes);
 		}
 
 		private void ClearBtn_Click(object sender, RoutedEventArgs e) {
