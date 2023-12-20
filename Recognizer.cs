@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -184,6 +181,16 @@ namespace SignatureRecognition {
 
 			strokes = newStrokes;
 			return strokes;
+		}
+
+		public static Rect GetBounds(StrokeCollection strokes) {
+			StylusPointCollection sp = new StylusPointCollection();
+			for (int i = 0; i < strokes.Count; i++) {
+				var stylusPoints = strokes[i].StylusPoints.Clone();
+				sp.Add(stylusPoints);
+			}
+			Stroke str = new Stroke(sp);
+			return str.GetBounds();
 		}
 	}
 }
