@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -191,6 +192,51 @@ namespace SignatureRecognition {
 			}
 			Stroke str = new Stroke(sp);
 			return str.GetBounds();
+		}
+
+		public static StrokeCollection NoiseReduction(StrokeCollection strokes) {
+			StylusPointCollection sp = new StylusPointCollection();
+			const double maximalDistance = 1;
+			for (int i = 0; i < strokes.Count; i++) {
+				var stylusPoints = strokes[i].StylusPoints.Clone().ToArray();
+				IComparer<StylusPoint> comparer = new XComparer();
+				Array.Sort(stylusPoints, comparer);
+				for (int j = 1; i < stylusPoints.Length; i++) {
+					if (stylusPoints[j].X - stylusPoints[j-1].X > maximalDistance) {
+						strokes[i].StylusPoints.Remove(stylusPoints[j]);
+					}
+				}
+				comparer = new YComparer();
+				Array.Sort(stylusPoints, comparer);
+				for (int j = 1; i < stylusPoints.Length; i++) {
+					if (stylusPoints[j].Y - stylusPoints[j - 1].Y > maximalDistance) {
+						strokes[i].StylusPoints.Remove(stylusPoints[j]);
+					}
+				}
+			}
+			return strokes;
+		}
+	}
+	class XComparer : IComparer<StylusPoint> {
+		public int Compare(StylusPoint first, StylusPoint second) {
+			if (first.X  < second.X) {
+				return 1;
+			} else if (first.X > second.X) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+	class YComparer : IComparer<StylusPoint> {
+		public int Compare(StylusPoint first, StylusPoint second) {
+			if (first.Y < second.Y) {
+				return 1;
+			} else if (first.X > second.X) {
+				return -1;
+			} else {
+				return 0;
+			}
 		}
 	}
 }
