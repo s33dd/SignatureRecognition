@@ -1,10 +1,15 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Ink;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace SignatureRecognition {
 	/// <summary>
@@ -13,27 +18,26 @@ namespace SignatureRecognition {
 	public partial class MainWindow : Window {
 
 		private string user;
-		private const int quantity = 5;
+		private const int quantity = 3;
 		private int currentInput;
 		private List<Signature> inputs;
 		private const string filePath = @"./json";
-		public List<string> Users { get; set; }
+		public ObservableCollection<string> Users { get; set; }
 		public MainWindow() {
 			InitializeComponent();
-			DataContext = this;
-			Users = new List<string>();
+			Users = new ObservableCollection<string>();
 			LoadUsers();
+			LoadBox.ItemsSource = Users;
 		}
 
 		private void LoadUsers() {
 			string listFile = filePath + @"/list.json";
 			if (File.Exists(listFile)) {
 				string jsonList = File.ReadAllText(listFile);
-				Users = JsonConvert.DeserializeObject<List<string>>(jsonList);
+				Users = JsonConvert.DeserializeObject<ObservableCollection<string>>(jsonList);
 			}
 		}
 		private void GetSigBtn_Click(object sender, RoutedEventArgs e) {
-			Canvas.Strokes.Clear();
 			inputs = new List<Signature>();
 			InputUser userWindow = new InputUser();
 			if (userWindow.ShowDialog() == true) {
@@ -92,30 +96,30 @@ namespace SignatureRecognition {
 				if (!Directory.Exists(filePath)) {
 					Directory.CreateDirectory(filePath);
 				}
-				int[] avPoints = new int[current.StrokesQuantity];
-				//Count average points quantity
-
+				int[] minPoints = new int[current.StrokesQuantity];
 				for (int i = 0; i < current.StrokesQuantity; i++) {
-					foreach (var sig in inputs) {
-						avPoints[i] += sig.Strokes[i].StylusPoints.Count;
+					minPoints[i] = current.Strokes[i].StylusPoints.Count();
+				}
+				//Save minimal points quantity
+				foreach (var sig in inputs) {
+					for (int i = 0; i < sig.StrokesQuantity; i++) {
+						if (minPoints[i] > sig.Strokes[i].StylusPoints.Count()) {
+							minPoints[i] = sig.Strokes[i].StylusPoints.Count();
+						}
 					}
-					avPoints[i] /= quantity;
 				}
 				List<StylusPointCollection> pointsforStrokes = new List<StylusPointCollection>(current.StrokesQuantity);
 				List<float[]> pressureForStrokes = new List<float[]>(current.StrokesQuantity);
 				for (int i = 0; i < pointsforStrokes.Capacity; i++) {
-					StylusPointCollection points = new StylusPointCollection(new StylusPoint[avPoints[i]]);
-					float[] pressures = new float[avPoints[i]];
+					StylusPointCollection points = new StylusPointCollection(new StylusPoint[minPoints[i]]);
+					float[] pressures = new float[minPoints[i]];
 					pressureForStrokes.Add(pressures);
 					pointsforStrokes.Add(points);
 				}
 				foreach (var sig in inputs) {
 					for (int i = 0; i < pointsforStrokes.Count; i++) {
 						var localPoints = sig.Strokes[i].StylusPoints.Clone();
-						for (int j = 0; j < localPoints.Count; j++) {
-							if (j >= pointsforStrokes[i].Count) {
-								break;
-							}
+						for (int j = 0; j < minPoints[i]; j++) {
 							double x = pointsforStrokes[i][j].X;
 							double y = pointsforStrokes[i][j].Y;
 							float pressure = pointsforStrokes[i][j].PressureFactor;
@@ -129,7 +133,7 @@ namespace SignatureRecognition {
 				}
 				for (int j = 0; j < pointsforStrokes.Count; j++) {
 					for (int i = 0; i < pointsforStrokes[j].Count; i++) {
-						double x = pointsforStrokes[j][i].X;
+						double x = pointsforStrokes[j][i].X; 
 						double y = pointsforStrokes[j][i].Y;
 						float pressure = pressureForStrokes[j][i];
 						x /= quantity;
@@ -142,11 +146,10 @@ namespace SignatureRecognition {
 				foreach (var points in pointsforStrokes) {
 					sc.Add(new Stroke(points));
 				}
-				sc = Recognizer.NoiseReduction(sc);
 				Signature finalSig = new Signature(sc);
 				finalSig.Owner = user;
 				string json = JsonConvert.SerializeObject(finalSig, Formatting.Indented);
-				string fileName = filePath + @$"\{user.Replace(' ', '_')}.json";
+				string fileName = filePath + @$"\{user.Replace(' ','_')}.json";
 				using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate)) {
 					byte[] buf = Encoding.Default.GetBytes(json);
 					fs.Write(buf, 0, buf.Length);

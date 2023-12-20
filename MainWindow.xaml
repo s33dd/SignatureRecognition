@@ -27,7 +27,7 @@
 			<Button x:Name="ClearBtn" Content="Очистить" Width="100px" Height="50px" Grid.Row="1" Click="ClearBtn_Click"/>
 			<Button x:Name="MoveBtn" Content="Переместить" Width="100px" Height="50px" Grid.Row="2" Click="MoveBtn_Click"/>
 			<Button x:Name="SaveBtn" Content="Сохранить" Width="100px" Height="50px" Grid.Row="3" Click="SaveBtn_Click" IsEnabled="False"/>
-			<ComboBox x:Name="LoadBox" Grid.Row="4" ItemsSource="{Binding Users}" Height="30px" FontSize="10"/>
+			<ComboBox x:Name="LoadBox" Grid.Row="4" Height="30px" FontSize="10"/>
 			<Button x:Name="LoadBtn" Content="Загрузить" Width="100px" Height="50px" Grid.Row="5" Click="LoadBtn_Click"/>
 		</Grid>
 	</Grid>
