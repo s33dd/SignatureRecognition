@@ -139,7 +139,7 @@ namespace SignatureRecognition {
 			return strokes;
 		}
 
-		public static StrokeCollection Rotate(StrokeCollection strokes) {
+		public static StrokeCollection Rotate(StrokeCollection strokes, double angle) {
 			StylusPointCollection sp = new StylusPointCollection();
 			List<int> endIndices = new List<int>();
 			List<int> startIndices = new List<int>(); //Arrays for saving indices for each stroke for separation
@@ -165,7 +165,7 @@ namespace SignatureRecognition {
 				var bounds = stroke.GetBounds();
 				double xCenter = bounds.Left + bounds.Width / 2;
 				double yCenter = bounds.Top + bounds.Height / 2;
-				matrix.RotateAt(15, xCenter, yCenter);
+				matrix.RotateAt(angle, xCenter, yCenter);
 				stroke.Transform(matrix, false);
 			}
 
@@ -215,6 +215,42 @@ namespace SignatureRecognition {
 				}
 			}
 			return strokes;
+		}
+
+		public static bool Compare(Signature first, Signature second) {
+			const double ratioEpsil = 0.3;
+			const double pointEpsil = 15;
+			const double pointsEpsil = 100;
+			const double pressureEpsil = 0.1;
+			bool result = false;
+			if (first.StrokesQuantity != second.StrokesQuantity) {
+				return result;
+			}
+			if (Math.Abs(second.AveragePressure - first.AveragePressure) > pressureEpsil) {
+				return result;
+			}
+			if (Math.Abs(second.HeightWidthRatio - first.HeightWidthRatio) > ratioEpsil) {
+				return result;
+			}
+			if (Math.Abs(first.PointsQuantity - second.PointsQuantity) > pointsEpsil) {
+				return false;
+			}
+			int count = 0;
+			for (int i = 0; i < second.StrokesQuantity; i++) {
+				int minQuantity = Math.Min(first.Strokes[i].StylusPoints.Count, second.Strokes[i].StylusPoints.Count);
+				for (int j = 0; j < minQuantity; j++) {
+					double xDisp = Math.Abs(first.Strokes[i].StylusPoints[j].X - second.Strokes[i].StylusPoints[j].X);
+					double yDisp = Math.Abs(first.Strokes[i].StylusPoints[j].Y - second.Strokes[i].StylusPoints[j].Y);
+					if (xDisp < pointEpsil & yDisp < pointEpsil) {
+						count++;
+					}
+				}
+			}
+			double estimated = second.PointsQuantity * 0.7; //70% of all points
+			if (count >= estimated) {
+				result = true;
+			}
+			return result;
 		}
 	}
 	class XComparer : IComparer<StylusPoint> {

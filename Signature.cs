@@ -13,9 +13,12 @@ namespace SignatureRecognition {
 		public double AveragePressure { get; set; }
 		public int StrokesQuantity { get; set; }
 		public double HeightWidthRatio { get; set; }
+		public int PointsQuantity { get; set; }
 		public string? Owner { get; set; }
+		public List<double> Distances { get; set; }
 
 		public Signature(StrokeCollection sc) {
+			Distances = new List<double>();
 			Points = new List<StylusPointCollection>();
 			Strokes = sc;
 			AveragePressure = 0;
@@ -26,8 +29,22 @@ namespace SignatureRecognition {
 					AveragePressure += point.PressureFactor;
 				}
 			}
+			const int distQuantity = 100;
+			int step = pointsQuantity / distQuantity;
+			StylusPointCollection points = new StylusPointCollection();
+			for (int i = 0; i < Strokes.Count; i++) {
+				points.Add(Strokes[i].StylusPoints.Clone());
+			}
+			for (int j = step; j < points.Count; j += step) {
+				StylusPoint point1 = points[j];
+				StylusPoint point2 = points[j - step];
+				double distance = Math.Sqrt(Math.Pow(point1.X - point2.X, 2) + Math.Pow(point1.Y - point2.Y, 2));
+				distance /= Recognizer.GetBounds(Strokes).Width;
+				Distances.Add(distance);
+			}
 			AveragePressure /= pointsQuantity;
 			StrokesQuantity = Strokes.Count;
+			PointsQuantity = pointsQuantity;
 			var bounds = Recognizer.GetBounds(Strokes);
 			HeightWidthRatio = Math.Round(bounds.Height / bounds.Width, 3);
 			foreach (Stroke stroke in Strokes) {
@@ -50,7 +67,20 @@ namespace SignatureRecognition {
 					AveragePressure += point.PressureFactor;
 				}
 			}
+			Distances = new List<double>();
+			const int distQuantity = 100;
+			int step = pointsQuantity / distQuantity;
+			for (int i = 0; i < points.Count; i++) {
+				for (int j = step; j < points.Count; j += step) {
+					StylusPoint point1 = points[i][j];
+					StylusPoint point2 = points[i][j - step];
+					double distance = Math.Sqrt(Math.Pow(point1.X - point2.X, 2) + Math.Pow(point1.Y - point2.Y, 2));
+					distance /= Recognizer.GetBounds(Strokes).Width;
+					Distances.Add(distance);
+				}
+			}
 			AveragePressure /= pointsQuantity;
+			PointsQuantity = pointsQuantity;
 			StrokesQuantity = Strokes.Count;
 			var bounds = Recognizer.GetBounds(Strokes);
 			HeightWidthRatio = Math.Round(bounds.Height / bounds.Width, 3);

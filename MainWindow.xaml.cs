@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -73,8 +74,41 @@ namespace SignatureRecognition {
 			Canvas.Strokes.Clear();
 		}
 
-		private void MoveBtn_Click(object sender, RoutedEventArgs e) {
-			Canvas.Strokes = Recognizer.Normalize(Canvas.Strokes);
+		private void RecBtn_Click(object sender, RoutedEventArgs e) {
+			if (Canvas.Strokes.Count == 0) {
+				MessageBox.Show("Введите подпись", "Ошибка");
+				return;
+			}
+			string listFile = filePath + @"/list.json";
+			if (!File.Exists(listFile)) {
+				MessageBox.Show("Нет сохранённых пользователей.", "Ошибка");
+				return;
+			}
+			Signature subject = new Signature(Recognizer.Normalize(Canvas.Strokes.Clone()));
+			foreach (string name in Users) {
+				string file = @$"{filePath}/{name}.json";
+				if (!File.Exists(file)) {
+					continue;
+				}
+				string json = File.ReadAllText(file);
+				Signature compared = JsonConvert.DeserializeObject<Signature>(json);
+				const double angle = 5.0;
+				int quantity = (int)Math.Round(360 / angle);
+				bool isSame = Recognizer.Compare(subject, compared);
+				if (isSame) {
+					MessageBox.Show($"Подпись принадлежит {compared.Owner}", "Распознавание");
+					return;
+				}
+				for (int i = 0; i < quantity; i++) {
+					subject.Strokes = Recognizer.Normalize(Recognizer.Rotate(subject.Strokes, angle));
+					isSame = Recognizer.Compare(subject, compared);
+					if (isSame) {
+						MessageBox.Show($"Подпись принадлежит {compared.Owner}", "Распознавание");
+						return;
+					}
+				}
+			}
+			MessageBox.Show("Совпадений не найдено.", "Распознавание");
 		}
 		private void SaveBtn_Click(object sender, RoutedEventArgs e) {
 			if (currentInput > 0) {
@@ -181,6 +215,7 @@ namespace SignatureRecognition {
 				MessageBox.Show("Сохранение завершено.", "Сохранение");
 				SaveBtn.IsEnabled = false;
 				GetSigBtn.IsEnabled = true;
+				Canvas.Strokes.Clear();
 			}
 		}
 
