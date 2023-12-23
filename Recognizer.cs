@@ -219,11 +219,15 @@ namespace SignatureRecognition {
 
 		public static bool Compare(Signature first, Signature second) {
 			const double ratioEpsil = 0.3;
-			const double pointEpsil = 15;
+			const double distanceEpsil = 2;
 			const double pointsEpsil = 100;
-			const double pressureEpsil = 0.1;
+			const double pressureEpsil = 0.2;
+			const double distCountEpsil = 10;
 			bool result = false;
 			if (first.StrokesQuantity != second.StrokesQuantity) {
+				return result;
+			}
+			if (Math.Abs(second.DistCount - first.DistCount) > distCountEpsil) {
 				return result;
 			}
 			if (Math.Abs(second.AveragePressure - first.AveragePressure) > pressureEpsil) {
@@ -236,17 +240,12 @@ namespace SignatureRecognition {
 				return false;
 			}
 			int count = 0;
-			for (int i = 0; i < second.StrokesQuantity; i++) {
-				int minQuantity = Math.Min(first.Strokes[i].StylusPoints.Count, second.Strokes[i].StylusPoints.Count);
-				for (int j = 0; j < minQuantity; j++) {
-					double xDisp = Math.Abs(first.Strokes[i].StylusPoints[j].X - second.Strokes[i].StylusPoints[j].X);
-					double yDisp = Math.Abs(first.Strokes[i].StylusPoints[j].Y - second.Strokes[i].StylusPoints[j].Y);
-					if (xDisp < pointEpsil & yDisp < pointEpsil) {
-						count++;
-					}
+			for (int i = 0; i < Math.Min(first.Distances.Count, second.Distances.Count); i++) {
+				if (Math.Abs(first.Distances[i] - second.Distances[i]) < distanceEpsil) {
+					count++;
 				}
 			}
-			double estimated = second.PointsQuantity * 0.7; //70% of all points
+			double estimated = second.Distances.Count * 0.7; //70% of all distances
 			if (count >= estimated) {
 				result = true;
 			}

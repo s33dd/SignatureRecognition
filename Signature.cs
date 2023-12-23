@@ -7,6 +7,7 @@ using System.Windows.Input;
 
 namespace SignatureRecognition {
 	public class Signature {
+		public int DistCount { get; set; }
 		[JsonIgnore]
 		public StrokeCollection Strokes { get; set; }
 		public List<StylusPointCollection> Points { get; set; }
@@ -29,8 +30,8 @@ namespace SignatureRecognition {
 					AveragePressure += point.PressureFactor;
 				}
 			}
-			const int distQuantity = 100;
-			int step = pointsQuantity / distQuantity;
+			DistCount = pointsQuantity / 2;
+			int step = pointsQuantity / DistCount;
 			StylusPointCollection points = new StylusPointCollection();
 			for (int i = 0; i < Strokes.Count; i++) {
 				points.Add(Strokes[i].StylusPoints.Clone());
@@ -68,8 +69,8 @@ namespace SignatureRecognition {
 				}
 			}
 			Distances = new List<double>();
-			const int distQuantity = 100;
-			int step = pointsQuantity / distQuantity;
+			DistCount = pointsQuantity / 2;
+			int step = pointsQuantity / DistCount;
 			for (int i = 0; i < points.Count; i++) {
 				for (int j = step; j < points.Count; j += step) {
 					StylusPoint point1 = points[i][j];
